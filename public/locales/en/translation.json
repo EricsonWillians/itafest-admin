@@ -1,0 +1,32 @@
+{
+    "app": {
+      "title": "Itafest Admin"
+    },
+    "auth": {
+      "title": "Login to Dashboard",
+      "subtitle": "Enter your email below to access your account",
+      "welcome": "Welcome back!",
+      "hero": {
+        "tagline": "Manage your local events and businesses with ease and efficiency.",
+        "team": "Itafest Team"
+      },
+      "form": {
+        "email": "Email",
+        "emailPlaceholder": "name@example.com",
+        "password": "Password",
+        "signIn": "Sign In",
+        "orContinueWith": "Or continue with",
+        "google": "Google"
+      },
+      "errors": {
+        "invalidCredentials": "Invalid email or password",
+        "googleLoginFailed": "Failed to login with Google"
+      },
+      "terms": {
+        "agreement": "By clicking continue, you agree to our",
+        "termsOfService": "Terms of Service",
+        "and": "and",
+        "privacyPolicy": "Privacy Policy"
+      }
+    }
+  }

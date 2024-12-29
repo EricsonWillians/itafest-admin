@@ -1,0 +1,32 @@
+{
+    "app": {
+      "title": "Itafest Admin"
+    },
+    "auth": {
+      "title": "Login no Painel",
+      "subtitle": "Digite seu email abaixo para acessar sua conta",
+      "welcome": "Bem-vindo de volta!",
+      "hero": {
+        "tagline": "Administre seus eventos e negócios locais com facilidade e eficiência.",
+        "team": "Equipe Itafest"
+      },
+      "form": {
+        "email": "Email",
+        "emailPlaceholder": "nome@exemplo.com",
+        "password": "Senha",
+        "signIn": "Entrar",
+        "orContinueWith": "Ou continue com",
+        "google": "Google"
+      },
+      "errors": {
+        "invalidCredentials": "Email ou senha inválidos",
+        "googleLoginFailed": "Falha ao fazer login com o Google"
+      },
+      "terms": {
+        "agreement": "Ao clicar em continuar, você concorda com nossos",
+        "termsOfService": "Termos de Serviço",
+        "and": "e",
+        "privacyPolicy": "Política de Privacidade"
+      }
+    }
+  }

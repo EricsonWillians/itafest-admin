@@ -1,0 +1,26 @@
+{
+    "login": {
+      "title": "Login no Painel",
+      "subtitle": "Digite seu email abaixo para acessar sua conta",
+      "email": "Email",
+      "password": "Senha",
+      "signIn": "Entrar",
+      "continueWith": "Ou continue com",
+      "google": "Google",
+      "welcome": "Bem-vindo de volta!",
+      "errors": {
+        "invalidCredentials": "Email ou senha inválidos",
+        "googleLoginFailed": "Falha ao fazer login com o Google"
+      }
+    },
+    "hero": {
+      "tagline": "Administre seus eventos e negócios locais com facilidade e eficiência.",
+      "team": "Equipe Itafest"
+    },
+    "terms": {
+      "text": "Ao clicar em continuar, você concorda com nossos",
+      "termsOfService": "Termos de Serviço",
+      "and": "e",
+      "privacyPolicy": "Política de Privacidade"
+    }
+  }
