@@ -1,5 +1,6 @@
+// DashboardLayout.tsx
 import { useAuth } from '@/lib/auth'
-import { useNavigate } from '@tanstack/react-router'
+import { Outlet, useNavigate, useRouter } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/components/theme-provider'
 import {
@@ -12,6 +13,8 @@ import {
   Users,
   Building2,
   Settings,
+  ShoppingBag,
+  Tag
 } from 'lucide-react'
 import { AuthGuard } from '@/components/auth/auth-guard'
 import { 
@@ -26,94 +29,108 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
+// Debug utility
+const DEBUG = {
+  enabled: import.meta.env.DEV,
+  log: (area: string, message: string, data?: any) => {
+    if (!DEBUG.enabled) return;
+    console.log(
+      `%c🎯 [Dashboard Layout][${area}] ${message}`,
+      'color: #059669; font-weight: bold;',
+      data || ''
+    );
+  },
+  error: (area: string, message: string, error?: any) => {
+    if (!DEBUG.enabled) return;
+    console.error(
+      `%c❌ [Dashboard Layout][${area}] ${message}`,
+      'color: #DC2626; font-weight: bold;',
+      error || ''
+    );
+  }
+};
+
 const sidebarLinks = [
   { icon: Home, label: 'Dashboard', href: '/dashboard' },
+  { icon: Building2, label: 'Businesses', href: '/dashboard/businesses' },
   { icon: Calendar, label: 'Events', href: '/dashboard/events' },
   { icon: Users, label: 'Users', href: '/dashboard/users' },
-  { icon: Building2, label: 'Businesses', href: '/dashboard/businesses' },
+  { icon: ShoppingBag, label: 'Ads', href: '/dashboard/ads' },
+  { icon: Tag, label: 'Categories', href: '/dashboard/categories' },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ]
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+export function DashboardLayout() {
+  DEBUG.log('Lifecycle', 'DashboardLayout rendering started');
+
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   const handleNavigation = (href: string) => {
-    navigate({ to: href as any })
+    DEBUG.log('Navigation', 'Navigation attempted', {
+      target: href,
+      currentPath: window.location.pathname
+    });
+    try {
+      navigate({ to: href as any })
+      DEBUG.log('Navigation', 'Navigation successful', { href });
+    } catch (error) {
+      DEBUG.error('Navigation', 'Navigation failed', error);
+    }
   }
 
-  const getUserInitials = () => {
-    if (!user?.email) return 'U'
-    return user.email.substring(0, 2).toUpperCase()
-  }
-
+  // Wrap everything with your auth guard
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-neptunic-light-blue dark:bg-gray-900">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="sticky top-0 z-50 border-b bg-neptunic-blue shadow-lg">
+        <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container mx-auto flex h-16 items-center px-4">
-            {/* Logo and Menu Toggle */}
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="text-white hover:bg-neptunic-green/20"
-              >
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-              <h1 className="text-xl font-bold text-white">Itafest Admin</h1>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            >
+              <Menu className="h-6 w-6" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
 
-            {/* Right Side Controls */}
-            <div className="ml-auto flex items-center space-x-4">
-              {/* Theme Toggle */}
+            <h1 className="ml-4 text-xl font-bold">Admin Panel</h1>
+
+            <div className="ml-auto flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="text-white hover:bg-neptunic-green/20"
               >
                 <SunIcon className="h-5 w-5 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
                 <MoonIcon className="absolute h-5 w-5 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
-                <span className="sr-only">Toggle theme</span>
               </Button>
 
-              {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user?.photoURL || ''} alt={user?.email || ''} />
-                      <AvatarFallback className="bg-neptunic-green text-white">
-                        {getUserInitials()}
-                      </AvatarFallback>
+                      <AvatarImage src={user?.photoURL} />
+                      <AvatarFallback>{user?.email?.substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user?.email}</p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        Administrator
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={async () => {
-                      await logout()
-                      navigate({ to: '/login' })
+                    className="text-red-600 dark:text-red-400"
+                    onClick={() => {
+                      logout();
+                      navigate({ to: '/login' });
                     }}
-                    className="text-red-500 focus:bg-red-50 focus:text-red-500"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
+                    Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -125,7 +142,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           {/* Sidebar */}
           <aside
             className={cn(
-              "fixed left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 border-r bg-white/50 backdrop-blur-lg transition-transform duration-300 ease-in-out dark:bg-gray-800/50",
+              "fixed left-0 top-16 z-30 h-[calc(100vh-4rem)] w-64 border-r bg-background transition-transform",
               isSidebarOpen ? "translate-x-0" : "-translate-x-full"
             )}
           >
@@ -133,8 +150,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               {sidebarLinks.map((link) => (
                 <Button
                   key={link.href}
-                  variant="ghost"
-                  className="w-full justify-start gap-2 text-neptunic-blue hover:bg-neptunic-green/10 dark:text-white"
+                  variant={window.location.pathname === link.href ? "secondary" : "ghost"}
+                  className="w-full justify-start gap-2"
                   onClick={() => handleNavigation(link.href)}
                 >
                   <link.icon className="h-5 w-5" />
@@ -144,15 +161,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </nav>
           </aside>
 
-          {/* Main Content */}
+          {/* Main Content - Renders child routes here */}
           <main
             className={cn(
-              "flex-1 transition-all duration-300 ease-in-out",
+              "flex-1 transition-all duration-200 ease-in-out",
               isSidebarOpen ? "ml-64" : "ml-0"
             )}
           >
             <div className="container mx-auto p-6">
-              {children}
+              {/* Critical: This is where child routes (e.g. BusinessPage) appear */}
+              <Outlet />
             </div>
           </main>
         </div>
@@ -160,3 +178,5 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     </AuthGuard>
   )
 }
+
+export default DashboardLayout

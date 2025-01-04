@@ -1,4 +1,3 @@
-// src/lib/auth.tsx
 import { createContext, useContext, useEffect, useState } from 'react'
 import axios from 'axios'
 import { initializeApp } from 'firebase/app'
@@ -20,12 +19,31 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 }
 
 const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 const googleProvider = new GoogleAuthProvider()
+
+// Create API client with proper base URL
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '30000'),
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+
+// Add auth token to all requests
+api.interceptors.request.use(async (config) => {
+  if (auth.currentUser) {
+    const token = await auth.currentUser.getIdToken()
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
 
 interface AuthContextType {
   user: User | null
@@ -55,21 +73,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async ({ email, password }: { email: string; password: string }) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      // Get ID token for backend requests
       const idToken = await userCredential.user.getIdToken()
       
-      // Verify token with backend
-      const response = await fetch('/api/v1/auth/verify', {
-        method: 'POST',
+      // Verify token with backend using axios instance
+      await api.post('/auth/verify', null, {
         headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${idToken}`
         }
       })
-      
-      if (!response.ok) {
-        throw new Error('Failed to verify token with backend')
-      }
     } catch (error) {
       console.error('Login error:', error)
       throw error
@@ -81,18 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const result = await signInWithPopup(auth, googleProvider)
       const idToken = await result.user.getIdToken()
       
-      // Send token to backend for verification and user creation/update
-      const response = await fetch('/api/v1/auth/google', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ idToken })
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to verify Google sign-in with backend')
-      }
+      // Send token to backend using axios instance
+      await api.post('/auth/google', { idToken })
     } catch (error) {
       console.error('Google login error:', error)
       throw error
@@ -101,28 +102,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async ({ email, password, name }: { email: string; password: string; name?: string }) => {
     try {
-      // Register with Firebase
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       
-      // Send additional data to backend
-      const response = await fetch('/api/v1/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          name
-        })
+      // Send additional data to backend using axios instance
+      await api.post('/auth/register', {
+        email,
+        password,
+        name
       })
-      
-      if (!response.ok) {
-        // If backend registration fails, delete the Firebase user
-        await userCredential.user.delete()
-        throw new Error('Failed to register user with backend')
-      }
     } catch (error) {
+      // If backend registration fails, clean up Firebase user
+      if (auth.currentUser) {
+        await auth.currentUser.delete()
+      }
       console.error('Registration error:', error)
       throw error
     }
@@ -162,15 +154,4 @@ export function useAuth() {
   return context
 }
 
-// API client with auth token injection
-export const api = axios.create({
-  baseURL: '/api/v1'
-})
-
-api.interceptors.request.use(async (config) => {
-  if (auth.currentUser) {
-    const token = await auth.currentUser.getIdToken()
-    config.headers['Authorization'] = `Bearer ${token}`
-  }
-  return config
-})
+export { api }

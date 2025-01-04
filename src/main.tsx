@@ -7,13 +7,32 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/lib/auth'
 import { router } from '@/lib/router'
 import { Toaster } from 'sonner'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 // Import i18n configuration
 import './lib/i18n'
 
 import './index.css'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      refetchOnWindowFocus: false,
+    },
+  },
+  logger: {
+    log: (...args) => {
+      console.log('🔵 [Query]', ...args)
+    },
+    warn: (...args) => {
+      console.warn('🟡 [Query]', ...args)
+    },
+    error: (...args) => {
+      console.error('🔴 [Query]', ...args)
+    },
+  },
+})
 
 function Root() {
   return (
@@ -23,6 +42,7 @@ function Root() {
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
               <RouterProvider router={router} />
+              <ReactQueryDevtools initialIsOpen={false} />
               <Toaster />
             </AuthProvider>
           </QueryClientProvider>

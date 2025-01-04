@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Icons } from '@/components/ui/icons'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 
-export function LoginPage() {
+function LoginPage() {
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -174,3 +174,5 @@ export function LoginPage() {
     </div>
   )
 }
+
+export default LoginPage;
